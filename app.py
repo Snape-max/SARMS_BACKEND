@@ -1,6 +1,6 @@
 from flask import Flask
 from model import db
-from view import account_bp
+from view import account_bp, file_bp
 from config import config
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -15,6 +15,7 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
     app.register_blueprint(account_bp)
+    app.register_blueprint(file_bp)
     return app
 
 

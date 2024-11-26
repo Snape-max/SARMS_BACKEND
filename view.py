@@ -1,6 +1,7 @@
+import os.path
 from datetime import datetime, timedelta
-from flask import Blueprint, request, jsonify, make_response
-from model import User, db
+from flask import Blueprint, request, jsonify, send_file
+from model import User, db, Image
 from functools import wraps
 import jwt
 from utils import allowed_file
@@ -8,7 +9,7 @@ from config import _SECRET_KEY
 
 account_bp = Blueprint('account_bp', __name__)
 
-
+file_bp = Blueprint('file_bp', __name__)
 
 
 @account_bp.route('/register', methods=['POST'])
@@ -67,9 +68,12 @@ def token_required(f):
     return decorated
 
 
-@account_bp.route('/upload', methods=['POST'])
+
+
+@file_bp.route('/upload', methods=['POST'])
 @token_required
 def upload_file(current_user):
+    user = User.query.filter(User.email == current_user).first()
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     file = request.files['file']
@@ -78,8 +82,23 @@ def upload_file(current_user):
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
+        image = Image(img_path=f"file/{file.filename}", img_date=datetime.now(), img_name=file.filename,
+                       author_id=user.id)
+        db.session.add(image)
+        db.session.commit()
         filename = file.filename
         file.save(f"uploads/{filename}")
         return jsonify({'message': f'File {filename} has been uploaded successfully.'}), 200
     else:
         return jsonify({'error': 'File type not allowed'}), 400
+
+
+@file_bp.route('/file/<filename>')
+@token_required
+def get_file(current_user, filename):
+    if os.path.exists(f"uploads/{filename}"):
+        return send_file(f"uploads/{filename}")
+    else:
+        return jsonify({'error': 'File not found'}), 404
+
+

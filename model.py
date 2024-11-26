@@ -31,12 +31,26 @@ class User(db.Model):
 
 
 class Image(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     img_path = db.Column(db.String(100))
     img_date = db.Column(db.DateTime)
     img_name = db.Column(db.String(30))
     tags = db.relationship('Tag', secondary=tags, backref=db.backref('images', lazy='dynamic'))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, img_path, img_date, img_name, author_id):
+        self.img_path = img_path
+        self.img_date = img_date
+        self.img_name = img_name
+        self.author_id = author_id
+
+    def add_tags(self, tag_list):
+        ...
+
+
+    def get_images_by_author(self, author):
+        return Image.query.filter_by(author_id=author).all()
+
 
 
 
