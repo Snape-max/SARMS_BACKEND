@@ -111,7 +111,7 @@
       <workItem from="1732552640237" duration="92000" />
       <workItem from="1732552738863" duration="785000" />
       <workItem from="1732587661200" duration="4816000" />
-      <workItem from="1732720434039" duration="1908000" />
+      <workItem from="1732720434039" duration="2915000" />
     </task>
     <servers />
   </component>
@@ -123,6 +123,8 @@
     <option name="LAST_COMMIT_MESSAGE" value="feat: 初始化项目结构和基本功能&#10;&#10;- 创建 Flask 项目结构- 添加用户注册和登录功能- 实现文件上传功能&#10;- 配置数据库和迁移&#10;- 添加跨域支持" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/SARMS_BACKEND$utils.coverage" NAME="utils 覆盖结果" MODIFIED="1732722402960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/SARMS_BACKEND$SARMS.coverage" NAME="SARMS 覆盖结果" MODIFIED="1732722166227" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/SARMS$SARMS.coverage" NAME="SARMS 覆盖结果" MODIFIED="1732592457365" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
