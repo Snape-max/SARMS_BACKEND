@@ -1,14 +1,15 @@
 import os.path
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, send_file
+from werkzeug.utils import secure_filename
 from model import User, db, Image
 from functools import wraps
 import jwt
 from utils import allowed_file
-from config import _SECRET_KEY
+from config import _SECRET_KEY, FILE_SAVE_FOLDER, FILE_ROUTE
+import hashlib
 
 account_bp = Blueprint('account_bp', __name__)
-
 file_bp = Blueprint('file_bp', __name__)
 
 
@@ -69,6 +70,14 @@ def token_required(f):
 
 
 
+@file_bp.route(f'/{FILE_ROUTE}/<filehash>')
+def get_file(filehash):
+    image = Image.query.filter(Image.img_md5 == filehash).first()
+    if image is None:
+        return jsonify({'error': 'File not found'}), 404
+    return send_file(image.img_path)
+
+
 
 @file_bp.route('/upload', methods=['POST'])
 @token_required
@@ -82,23 +91,78 @@ def upload_file(current_user):
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
-        image = Image(img_path=f"file/{file.filename}", img_date=datetime.now(), img_name=file.filename,
+        image = Image(img_date=datetime.now(), img_name=file.filename,
                        author_id=user.id)
+
+        md5_hash = hashlib.md5(file.read()).hexdigest()
+        _, ext = os.path.splitext(secure_filename(file.filename))
+        file.seek(0)
+        image.img_md5 = md5_hash
+        image.img_url = f"{FILE_ROUTE}/{md5_hash}"
+        image.img_path = f"{FILE_SAVE_FOLDER}/{md5_hash}{ext}"
+        file.save(f"{image.img_path}")
         db.session.add(image)
         db.session.commit()
         filename = file.filename
-        file.save(f"uploads/{filename}")
         return jsonify({'message': f'File {filename} has been uploaded successfully.'}), 200
     else:
         return jsonify({'error': 'File type not allowed'}), 400
 
 
-@file_bp.route('/file/<filename>')
+
+@file_bp.route('/query')
 @token_required
-def get_file(current_user, filename):
-    if os.path.exists(f"uploads/{filename}"):
-        return send_file(f"uploads/{filename}")
+def query_item(current_user):
+    filters = request.args
+    query = Image.query
+    if not filters:
+        return jsonify([image.serialize() for image in query.all()])
+
+    if 'name' in filters:
+        query = query.filter(Image.img_name.like(f"%{filters['img_name']}%"))
+
+    if 'start_date' in filters and 'end_date' in filters:
+        try:
+            start_date = datetime.strptime(filters['start_date'], '%Y-%m-%d')
+            end_date = datetime.strptime(filters['end_date'], '%Y-%m-%d') + timedelta(days=1)
+            query = query.filter(Image.img_date >= start_date, Image.img_date < end_date)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    if 'tag' in filters:
+        ...
+
+    images = query.all()
+    return jsonify([image.serialize() for image in images])
+
+
+@file_bp.route('/modify')
+@token_required
+def modify_item(current_user):
+    filters = request.args
+    if not filters:
+        return jsonify({'error': 'No filters provided'}), 400
+
+    if not 'id' in filters: # 需提供id
+        return jsonify({'error': 'No id provided'}), 400
+
+    image = Image.query.filter(Image.id == filters['id']).first() # 查询图片
+
+    if image is None: # 图片不存在
+        return jsonify({'error': 'Image not found'}), 404
+
+    if 'rename' in filters and filters['rename'] != '': # 重命名
+        image.img_name = filters['rename']
+        db.session.commit()
+        return jsonify({'message': 'Image renamed successfully'}), 200
+    elif 'delete' in filters and filters['delete'] == 'true': # 删除
+        os.remove(image.img_path)
+        image.tags.clear() # 清空标签表
+        db.session.delete(image)
+        db.session.commit()
+        return jsonify({'message': 'Image deleted successfully'}), 200
     else:
-        return jsonify({'error': 'File not found'}), 404
+        return jsonify({'error': 'Invalid request'}), 400
+
 
 

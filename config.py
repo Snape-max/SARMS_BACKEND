@@ -2,6 +2,9 @@ import os
 import sys
 
 _SECRET_KEY = "oxygen-x"
+FILE_SAVE_FOLDER = "./uploads"
+FILE_ROUTE = "image"
+
 
 class Config:
     # 基本配置

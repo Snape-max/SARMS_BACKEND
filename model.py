@@ -1,5 +1,8 @@
 from werkzeug.security import  generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+
 
 db = SQLAlchemy()
 
@@ -31,18 +34,20 @@ class User(db.Model):
 
 
 class Image(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    img_url = db.Column(db.String(100))
     img_path = db.Column(db.String(100))
     img_date = db.Column(db.DateTime)
     img_name = db.Column(db.String(30))
+    img_md5 = db.Column(db.String(32))
     tags = db.relationship('Tag', secondary=tags, backref=db.backref('images', lazy='dynamic'))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, img_path, img_date, img_name, author_id):
-        self.img_path = img_path
+    def __init__(self, img_date, img_name, author_id):
         self.img_date = img_date
         self.img_name = img_name
         self.author_id = author_id
+
 
     def add_tags(self, tag_list):
         ...
@@ -50,6 +55,16 @@ class Image(db.Model):
 
     def get_images_by_author(self, author):
         return Image.query.filter_by(author_id=author).all()
+
+
+    def serialize(self):
+        return {
+            'id': str(self.id),
+            'img_url': self.img_url,
+            'img_date': self.img_date.isoformat() if self.img_date else None,  # 确保日期格式化为字符串
+            'img_name': self.img_name,
+            'tags': [tag.name for tag in self.tags]  # 添加此行以序列化标签
+        }
 
 
 
