@@ -8,6 +8,7 @@ import jwt
 from utils import allowed_file
 from config import _SECRET_KEY, FILE_SAVE_FOLDER, FILE_ROUTE
 import hashlib
+import uuid
 
 account_bp = Blueprint('account_bp', __name__)
 file_bp = Blueprint('file_bp', __name__)
@@ -41,7 +42,7 @@ def login(): # 登录接口
         if user.check_password(passwd):
             token = jwt.encode({
                 'sub': data['email'],
-                'exp': datetime.utcnow() + timedelta(minutes=30)
+                'exp': datetime.utcnow() + timedelta(minutes=60)
             }, _SECRET_KEY, algorithm="HS256")
             return jsonify(status="success", msg="登录成功", token=token)
         else:
@@ -54,7 +55,6 @@ def token_required(f):
         token = None
         if 'x-access-token' in request.headers:
             token = request.headers['x-access-token']
-
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
 
@@ -110,7 +110,7 @@ def upload_file(current_user):
 
 
 
-@file_bp.route('/query')
+@file_bp.route('/query', methods=['GET', 'POST'])
 @token_required
 def query_item(current_user):
     filters = request.args
@@ -129,6 +129,13 @@ def query_item(current_user):
         except ValueError:
             return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
 
+    if 'id' in filters:
+        try:
+            image_id = uuid.UUID(filters['id'])  # 尝试将字符串转换为UUID
+            query = query.filter(Image.id == image_id)
+        except ValueError:
+            return jsonify({'error': 'Invalid id, must be a valid UUID'}), 400
+
     if 'tag' in filters:
         ...
 
@@ -136,7 +143,7 @@ def query_item(current_user):
     return jsonify([image.serialize() for image in images])
 
 
-@file_bp.route('/modify')
+@file_bp.route('/modify', methods=['POST'])
 @token_required
 def modify_item(current_user):
     filters = request.args
@@ -146,8 +153,14 @@ def modify_item(current_user):
     if not 'id' in filters: # 需提供id
         return jsonify({'error': 'No id provided'}), 400
 
-    image = Image.query.filter(Image.id == filters['id']).first() # 查询图片
+    # str转uuid
+    image_id = None
+    try:
+        image_id = uuid.UUID(filters['id'])  # 尝试将字符串转换为UUID
+    except ValueError:
+        return jsonify({'error': 'Invalid id, must be a valid UUID'}), 400
 
+    image = Image.query.filter(Image.id == image_id).first()
     if image is None: # 图片不存在
         return jsonify({'error': 'Image not found'}), 404
 
