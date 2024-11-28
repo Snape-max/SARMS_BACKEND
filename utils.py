@@ -108,11 +108,39 @@ class sartools:
         queryanns=self.getAnns(imgIds, catIds)
         imgIds = imgIds if _isArrayLike(imgIds) else [imgIds]
         catIds = catIds if _isArrayLike(catIds) else [catIds]
+        temp={i:0 for i in range(6)}
+        dic=defaultdict(int)
+        for id in imgIds:
+            dic[id]=temp
+        for ann in queryanns:
+            imid=ann['image_id']
+            catid=ann['category_id']
+            dic[imid][catid]+=1
+        return dic
 
+    def visualize(self, output_path,imgIds=[], catIds=[]):
+        """
+        display the image and its annotations
+        :param imgIds (int array)     : get image ids for given ids
+        :return:
+        """
+        anns=self.getAnns(imgIds, catIds)
+        category_dict = {category['id']: category['name'] for category in self.dataset['categories']}
+        for id in imgIds:
+            image_name=self.imgs[id]['file_name']
+            image_path=os.path.join(self.image_folder,image_name)
+            image = cv2.imread(image_path, 1)
+            for ann in anns:
+                if ann['image_id']==id:
+                    category_id=ann['category_id']
+                    category_name=category_dict[category_id]
+                    x,y,w,h=ann['bbox']
+                    cv2.rectangle(image, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 0), 2)
+                    cv2.putText(image, category_name, (int(x), int(y-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.9, ())
 
+            cv2.imwrite(output_path+image_name+'labeled.jpg',image)
 
-        return anns
-
+        return
 
 if __name__ == "__main__":
     dataType='val'
@@ -122,3 +150,6 @@ if __name__ == "__main__":
     sartool=sartools(annFile,dataDir)
     test=sartool.getAnns(2077)
     print(test)
+    dic=sartool.getTags([2077])
+    print(dic)
+    sartool.visualize('./test./',[2077])
