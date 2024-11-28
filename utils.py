@@ -4,6 +4,11 @@ import cv2
 from collections import defaultdict
 import itertools
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
@@ -20,16 +25,13 @@ class sartools:
         self.imgToAnns, self.catToImgs = defaultdict(list), defaultdict(list)
         self.image_folder = image_folder
         if not annotation_file == None:
-            print('loading annotations into memory...')
             with open(annotation_file, 'r') as f:
                 dataset = json.load(f)
-            print('Done')
             self.dataset = dataset
             self.createIndex()
         return
     def createIndex(self):
         # create index
-        print('creating index...')
         anns, cats, imgs = {}, {}, {}
         imgToAnns,catToImgs = defaultdict(list),defaultdict(list)
         if 'annotations' in self.dataset:
@@ -48,8 +50,6 @@ class sartools:
         if 'annotations' in self.dataset and 'categories' in self.dataset:
             for ann in self.dataset['annotations']:
                 catToImgs[ann['category_id']].append(ann['image_id'])
-
-        print('index created!')
 
         # create class members
         self.anns = anns
@@ -80,32 +80,9 @@ class sartools:
         # ids = [ann['id'] for ann in anns]
         return anns
 
-    def getCatIds(self, catNms=[], catIds=[]):
-        """
-        filtering parameters. default skips that filter.
-        :param catNms (str array)  : get cats for given cat names
-        :param supNms (str array)  : get cats for given supercategory names
-        :param catIds (int array)  : get cats for given cat ids
-        :return:    : integer array of cat ids
-        """
-        catNms = catNms if _isArrayLike(catNms) else [catNms]
-        catIds = catIds if _isArrayLike(catIds) else [catIds]
-
-        if len(catNms)  == len(catIds) == 0:
-            cats = self.dataset['categories']
-        else:
-            cats = self.dataset['categories']
-            cats = cats if len(catNms) == 0 else [cat for cat in cats if cat['name']          in catNms]
-
-            cats = cats if len(catIds) == 0 else [cat for cat in cats if cat['id']            in catIds]
-        ids = [cat['id'] for cat in cats]
-        return ids
-
-
     def getTags(self, imgIds=[], catIds=[]) -> dict[str: int]:
         queryanns=self.getAnns(imgIds, catIds)
         imgIds = imgIds if _isArrayLike(imgIds) else [imgIds]
-        catIds = catIds if _isArrayLike(catIds) else [catIds]
         temp={i:0 for i in range(6)}
         dic=defaultdict(int)
         for id in imgIds:
@@ -141,13 +118,16 @@ class sartools:
         return
 
 if __name__ == "__main__":
-    dataType='val'
-    # option: val test train
+    # follow is how to use sartools
+
+    dataType='val'   # option: val test train
     dataDir='../Images/{}/'.format(dataType)
     annFile='../Annotations/{}.json'.format(dataType)
+
+    # initialize
     sartool=sartools(annFile,dataDir)
+
+    # three function
     test=sartool.getAnns(2077)
-    print(test)
-    dic=sartool.getTags([2077])
-    print(dic)
+    dic=sartool.getTags([2077,2078])
     sartool.visualize('./test./',[2077])
