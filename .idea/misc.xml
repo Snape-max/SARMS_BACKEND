@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="SARMS" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="SARMS" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="sarms" project-jdk-type="Python SDK" />
 </project>

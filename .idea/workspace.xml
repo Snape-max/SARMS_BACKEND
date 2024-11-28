@@ -63,7 +63,6 @@
         <env name="FLASK_APP" value="app:create_app()" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="SARMS" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
