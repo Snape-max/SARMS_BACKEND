@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="da1d062b-9332-4db3-880b-9d881688b8fd" name="更改" comment="feat(file): 实现文件查询和修改功能&#10;&#10;- 添加文件查询接口，支持按名称、日期和标签筛选&#10;- 添加文件修改接口，支持重命名和删除&#10;-优化文件上传逻辑，使用 MD5 哈希值作为文件名&#10;- 新增文件保存路径和路由配置" />
+=======
+    <list default="true" id="da1d062b-9332-4db3-880b-9d881688b8fd" name="更改" comment="feat: 初始化项目结构和基本功能&#10;&#10;- 创建 Flask 项目结构- 添加用户注册和登录功能- 实现文件上传功能&#10;- 配置数据库和迁移&#10;- 添加跨域支持">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
+    </list>
+>>>>>>> 3ac0f6f4a3d368f4be8dd804768cbc482bf3bb59
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,6 +23,17 @@
         <option value="Flask Main" />
         <option value="Python Script" />
       </list>
+    </option>
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
     </option>
   </component>
   <component name="Git.Settings">
@@ -96,12 +114,17 @@
       <workItem from="1732545169468" duration="6873000" />
       <workItem from="1732552640237" duration="92000" />
       <workItem from="1732552738863" duration="785000" />
+<<<<<<< HEAD
       <workItem from="1732587661200" duration="6954000" />
       <workItem from="1732635433762" duration="6957000" />
       <workItem from="1732694728093" duration="8015000" />
       <workItem from="1732712507571" duration="4436000" />
       <workItem from="1732719074966" duration="13467000" />
       <workItem from="1732760251386" duration="1694000" />
+=======
+      <workItem from="1732587661200" duration="4816000" />
+      <workItem from="1732720434039" duration="2915000" />
+>>>>>>> 3ac0f6f4a3d368f4be8dd804768cbc482bf3bb59
     </task>
     <task id="LOCAL-00001" summary="feat(file): 实现文件查询和修改功能&#10;&#10;- 添加文件查询接口，支持按名称、日期和标签筛选&#10;- 添加文件修改接口，支持重命名和删除&#10;-优化文件上传逻辑，使用 MD5 哈希值作为文件名&#10;- 新增文件保存路径和路由配置">
       <option name="closed" value="true" />
@@ -134,8 +157,14 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+<<<<<<< HEAD
     <SUITE FILE_PATH="coverage/SARMS_BACKEND$utils.coverage" NAME="utils 覆盖结果" MODIFIED="1732761843811" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/SARMS_BACKEND$SARMS.coverage" NAME="SARMS 覆盖结果" MODIFIED="1732760614877" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/SARMS$SARMS.coverage" NAME="SARMS 覆盖结果" MODIFIED="1732733974301" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+=======
+    <SUITE FILE_PATH="coverage/SARMS_BACKEND$utils.coverage" NAME="utils 覆盖结果" MODIFIED="1732722402960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/SARMS_BACKEND$SARMS.coverage" NAME="SARMS 覆盖结果" MODIFIED="1732722166227" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/SARMS$SARMS.coverage" NAME="SARMS 覆盖结果" MODIFIED="1732592457365" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+>>>>>>> 3ac0f6f4a3d368f4be8dd804768cbc482bf3bb59
   </component>
 </project>
