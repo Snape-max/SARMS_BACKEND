@@ -2,16 +2,17 @@ import os.path
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, send_file
 from werkzeug.utils import secure_filename
-from model import User, db, Image
+from model import User, db, Image, Tag, File
 from functools import wraps
 import jwt
-from utils import allowed_file
+from utils import allowed_file, SarTools
 from config import _SECRET_KEY, FILE_SAVE_FOLDER, FILE_ROUTE
 import hashlib
 import uuid
 
 account_bp = Blueprint('account_bp', __name__)
 file_bp = Blueprint('file_bp', __name__)
+sar_tools = SarTools("label/label.pkl")
 
 
 @account_bp.route('/register', methods=['POST'])
@@ -72,10 +73,10 @@ def token_required(f):
 
 @file_bp.route(f'/{FILE_ROUTE}/<filehash>')
 def get_file(filehash):
-    image = Image.query.filter(Image.img_md5 == filehash).first()
-    if image is None:
+    file = File.query.filter_by(md5=filehash).first()
+    if file is None:
         return jsonify({'error': 'File not found'}), 404
-    return send_file(image.img_path)
+    return send_file(file.path)
 
 
 
@@ -91,20 +92,37 @@ def upload_file(current_user):
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
+        image_name = file.filename
+        tags = sar_tools.get_tags(image_name)
+        is_labeled = True
+        if tags is None:
+            is_labeled = False
         image = Image(img_date=datetime.now(), img_name=file.filename,
-                       author_id=user.id)
+                       author_id=user.id, is_labeled=is_labeled)
 
         md5_hash = hashlib.md5(file.read()).hexdigest()
         _, ext = os.path.splitext(secure_filename(file.filename))
         file.seek(0)
-        image.img_md5 = md5_hash
         image.img_url = f"{FILE_ROUTE}/{md5_hash}"
-        image.img_path = f"{FILE_SAVE_FOLDER}/{md5_hash}{ext}"
-        file.save(f"{image.img_path}")
+        img_path = f"{FILE_SAVE_FOLDER}/{md5_hash}{ext}"
+        image_file = File(md5=md5_hash, path=img_path)
+        file.save(f"{img_path}")
+        db.session.add(image_file)
         db.session.add(image)
+
+
+        if is_labeled:
+            # 添加标签后图像
+            labeled_img_hash, labeled_img_path = sar_tools.draw_box(image_name, img_path, FILE_SAVE_FOLDER)
+            image.labeled_image_url = f"{FILE_ROUTE}/{labeled_img_hash}"
+            label_img_file = File(md5=labeled_img_hash, path=labeled_img_path)
+            db.session.commit() # 先提交image，确定image_id
+            image.add_tags(tags)
+            db.session.add(label_img_file)
+            db.session.commit()
+
         db.session.commit()
-        filename = file.filename
-        return jsonify({'message': f'File {filename} has been uploaded successfully.'}), 200
+        return jsonify({'message': f'File {image_name} has been uploaded successfully.'}), 200
     else:
         return jsonify({'error': 'File type not allowed'}), 400
 
@@ -137,7 +155,7 @@ def query_item(current_user):
             return jsonify({'error': 'Invalid id, must be a valid UUID'}), 400
 
     if 'tag' in filters:
-        ...
+        query = Tag.get_images_by_tag(filters['tag'])
 
     images = query.all()
     return jsonify([image.serialize() for image in images])

@@ -4,6 +4,7 @@ from view import account_bp, file_bp
 from config import config
 from flask_cors import CORS
 from flask_migrate import Migrate
+from model import initialize_tags
 
 
 
@@ -16,6 +17,8 @@ def create_app():
     migrate = Migrate(app, db)
     app.register_blueprint(account_bp)
     app.register_blueprint(file_bp)
+    with app.app_context():
+        initialize_tags()
     return app
 
 
