@@ -43,9 +43,9 @@ def login(): # 登录接口
         if user.check_password(passwd):
             token = jwt.encode({
                 'sub': data['email'],
-                'exp': datetime.utcnow() + timedelta(minutes=60)
+                'exp': datetime.utcnow() + timedelta(days=1)
             }, _SECRET_KEY, algorithm="HS256")
-            return jsonify(status="success", msg="登录成功", token=token)
+            return jsonify(status="success", msg="登录成功", token=token, user = user.name)
         else:
             return jsonify(status="fail", msg="密码错误")
 
@@ -106,6 +106,7 @@ def upload_file(current_user):
         image.img_url = f"{FILE_ROUTE}/{md5_hash}"
         img_path = f"{FILE_SAVE_FOLDER}/{md5_hash}{ext}"
         image_file = File(md5=md5_hash, path=img_path)
+        image.img_md5 = md5_hash
         file.save(f"{img_path}")
         db.session.add(image_file)
         db.session.add(image)
@@ -115,6 +116,7 @@ def upload_file(current_user):
             # 添加标签后图像
             labeled_img_hash, labeled_img_path = sar_tools.draw_box(image_name, img_path, FILE_SAVE_FOLDER)
             image.labeled_image_url = f"{FILE_ROUTE}/{labeled_img_hash}"
+            image.labeled_image_md5 = labeled_img_hash
             label_img_file = File(md5=labeled_img_hash, path=labeled_img_path)
             db.session.commit() # 先提交image，确定image_id
             image.add_tags(tags)
@@ -132,20 +134,32 @@ def upload_file(current_user):
 @token_required
 def query_item(current_user):
     filters = request.args
+
     query = Image.query
     if not filters:
         return jsonify([image.serialize() for image in query.all()])
 
     if 'name' in filters:
-        query = query.filter(Image.img_name.like(f"%{filters['img_name']}%"))
+        name = filters.get('name')
+        if name:
+            query = query.filter(Image.img_name.like(f"%{name}%"))
 
     if 'start_date' in filters and 'end_date' in filters:
         try:
-            start_date = datetime.strptime(filters['start_date'], '%Y-%m-%d')
-            end_date = datetime.strptime(filters['end_date'], '%Y-%m-%d') + timedelta(days=1)
-            query = query.filter(Image.img_date >= start_date, Image.img_date < end_date)
+            start_date_str = filters['start_date']
+            end_date_str = filters['end_date']
+            if start_date_str and end_date_str:
+                start_date = datetime.strptime(filters['start_date'], '%Y-%m-%dT%H:%M:%S.%f')
+                end_date = datetime.strptime(filters['end_date'], '%Y-%m-%dT%H:%M:%S.%f') + timedelta(days=1)
+                query = query.filter(Image.img_date >= start_date, Image.img_date < end_date)
+            elif start_date_str:
+                start_date = datetime.strptime(filters['start_date'], '%Y-%m-%dT%H:%M:%S.%f')
+                query = query.filter(Image.img_date >= start_date)
+            elif end_date_str:
+                end_date = datetime.strptime(filters['end_date'], '%Y-%m-%dT%H:%M:%S.%f') + timedelta(days=1)
+                query = query.filter(Image.img_date <= end_date)
         except ValueError:
-            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DDTHH:MM:SS.'}), 400
 
     if 'id' in filters:
         try:
@@ -154,8 +168,12 @@ def query_item(current_user):
         except ValueError:
             return jsonify({'error': 'Invalid id, must be a valid UUID'}), 400
 
-    if 'tag' in filters:
-        query = Tag.get_images_by_tag(filters['tag'])
+    if 'tags' in filters:
+        tags = filters['tags']
+        if tags:
+            tag_list = tags.split(',')
+            tag_query = Tag.get_images_by_tags(tag_list)
+            query = query.intersect(tag_query)  # 使用 intersect 来获取交集
 
     images = query.all()
     return jsonify([image.serialize() for image in images])
@@ -187,8 +205,14 @@ def modify_item(current_user):
         db.session.commit()
         return jsonify({'message': 'Image renamed successfully'}), 200
     elif 'delete' in filters and filters['delete'] == 'true': # 删除
-        os.remove(image.img_path)
-        image.tags.clear() # 清空标签表
+        image_file = File.query.filter(File.md5 == image.img_md5).first()
+        os.remove(image_file.path) # 删除原图像
+        db.session.delete(image_file)
+        if image.is_labeled:
+            label_img_file = File.query.filter(File.md5 == image.labeled_image_md5).first()
+            # 删除标签可视化图像
+            os.remove(label_img_file.path)
+            db.session.delete(label_img_file)
         db.session.delete(image)
         db.session.commit()
         return jsonify({'message': 'Image deleted successfully'}), 200

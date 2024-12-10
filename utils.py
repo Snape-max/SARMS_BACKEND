@@ -1,7 +1,6 @@
 import hashlib
 import os
 from pathlib import Path
-
 import cv2
 import pickle as pkl
 
@@ -15,13 +14,16 @@ CATEGORIES = {
     5: 'harbor',
 }
 
+def rgb(r,g,b):
+    return b, g, r
+
 COLORS = {
-    0: (153, 51, 0),      # 深蓝 (Dark Blue)
-    1: (0, 128, 255),     # 橙色 (Orange)
-    2: (153, 0, 153),     # 紫色 (Purple)
-    3: (153, 255, 153),   # 浅绿 (Light Green)
-    4: (140, 230, 240),   # 土黄色 (Khaki)
-    5: (0, 0, 153)        # 深红 (Dark Red)
+    0: rgb(255, 157, 226),
+    1: rgb(140, 130, 252),
+    2: rgb(182, 147, 254),
+    3: rgb(126, 255, 219),
+    4: rgb(255, 211, 182),
+    5: rgb(245, 113, 112)
 }
 
 def allowed_file(filename):

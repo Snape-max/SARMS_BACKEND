@@ -33,21 +33,27 @@ class Tag(db.Model):
     name = db.Column(db.String(30))
 
     @staticmethod
-    def get_images_by_tag(tag_name: str):
+    def get_images_by_tags(tag_names: list):
+        if not tag_names:
+            # 如果标签列表为空，则返回一个空的查询对象
+            return Image.query.filter(False)
+
+        # 获取与指定标签名匹配的标签ID列表
+        tags = Tag.query.filter(Tag.name.in_(tag_names)).all()
+        if not tags:
+            return Image.query.filter(False)  # 如果没有找到匹配的标签，则返回空查询对象
+
+        tag_ids = [tag.id for tag in tags]
+
         # 使用别名来避免命名冲突
         image_alias = aliased(Image)
 
-        # 获取与指定标签名匹配的标签ID
-        tag = Tag.query.filter_by(name=tag_name).first()
-        if not tag:
-            return []  # 如果没有找到匹配的标签，则返回空列表
-
-        # 查询所有与该标签关联的图片
-        images = db.session.query(image_alias). \
+        # 查询所有与这些标签关联的图片
+        images_query = db.session.query(image_alias). \
             join(ImageTag, ImageTag.image_id == image_alias.id). \
-            filter(ImageTag.tag_id == tag.id).all()
+            filter(ImageTag.tag_id.in_(tag_ids))
 
-        return images
+        return images_query
 
 
 class ImageTag(db.Model):
@@ -65,9 +71,11 @@ class Image(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     img_url = db.Column(db.String(100))
     img_date = db.Column(db.DateTime)
+    img_md5 = db.Column(db.String(50))
     img_name = db.Column(db.String(30))
     is_labeled = db.Column(db.Boolean)
     labeled_image_url = db.Column(db.String(100))
+    labeled_image_md5 = db.Column(db.String(50))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, img_date, img_name, author_id, is_labeled):
@@ -101,12 +109,14 @@ class Image(db.Model):
 
 
     def serialize(self):
+        author_name = User.query.filter_by(id=self.author_id).first().name
         return {
             'id': str(self.id),
             'img_url': self.img_url,
             'img_date': self.img_date.isoformat() if self.img_date else None,  # 确保日期格式化为字符串
             'img_name': self.img_name,
             'labeled_image_url': self.labeled_image_url,
+            'author': author_name,
             'tags': self.__get_tags(),
         }
 
