@@ -2,7 +2,7 @@ import os.path
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, send_file
 from werkzeug.utils import secure_filename
-from model import User, db, Image, Tag, File
+from model import User, db, Image, Tag, File, count_image_num_by_date, get_tag_frequencies, get_unlabeled_image_percentage
 from functools import wraps
 import jwt
 from utils import allowed_file, SarTools
@@ -220,4 +220,15 @@ def modify_item(current_user):
         return jsonify({'error': 'Invalid request'}), 400
 
 
+@file_bp.route('/info', methods=['POST'])
+@token_required
+def get_info(current_user):
+    image_num_by_date = count_image_num_by_date()
+    tag_freq = get_tag_frequencies()
+    unlabeled_image_percentage, total_image_num = get_unlabeled_image_percentage()
 
+    return jsonify({'image_num_by_date': image_num_by_date,
+                    'tag_freq': tag_freq,
+                    'unlabeled_image_percentage': unlabeled_image_percentage,
+                    'total_image_num': total_image_num
+                    })

@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from sqlalchemy import func, and_
 from sqlalchemy.orm import aliased
 from werkzeug.security import  generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -143,3 +146,71 @@ def initialize_tags():
         print("Tags initialized successfully!")
     else:
         print("Tags already exist.")
+
+
+def generate_date_series(start_date, end_date):
+    """生成从开始日期到结束日期的日期序列"""
+    delta = end_date - start_date
+    return [(end_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(delta.days + 1)]
+
+def count_image_num_by_date():
+    # 获取当前时间和10天前的时间
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=10)
+
+    # 生成日期序列
+    date_series = generate_date_series(start_date, end_date)
+
+    # 查询数据库中过去10天每天的图片数量
+    image_counts_by_date = db.session.query(
+        func.strftime('%Y-%m-%d', Image.img_date).label('date'),
+        func.count(Image.id).label('count')
+    ).filter(
+        and_(Image.img_date >= start_date, Image.img_date <= end_date)
+    ).group_by(
+        func.strftime('%Y-%m-%d', Image.img_date)
+    ).order_by(
+        'date'
+    ).all()
+
+    # 将查询结果转换为字典以便后续处理
+    image_count_dict = {item.date: item.count for item in image_counts_by_date}
+
+    # 合并结果，确保所有日期都存在，并且对于没有数据的日子填充0
+    image_count_list = [{'date': date, 'count': image_count_dict.get(date, 0)} for date in date_series]
+
+    return image_count_list
+
+def get_tag_frequencies():
+    # 使用左外连接以确保所有标签都被包括进来，即使它们没有关联的图片
+    tag_frequencies = db.session.query(
+        Tag.id,
+        Tag.name,
+        func.coalesce(func.count(ImageTag.tag_id), 0).label('frequency')  # 使用 coalesce 将 NULL 替换为 0
+    ).outerjoin(
+        ImageTag, Tag.id == ImageTag.tag_id  # 使用左外连接
+    ).group_by(
+        Tag.id, Tag.name  # 按标签ID和名称分组
+    ).order_by(
+        func.coalesce(func.count(ImageTag.tag_id), 0).desc()  # 按频率降序排列
+    ).all()
+
+    # 将结果整理成一个易于阅读的列表格式
+    frequency_list = [{'id': tag_id, 'name': name, 'frequency': freq} for tag_id, name, freq in tag_frequencies]
+
+    return frequency_list
+
+def get_unlabeled_image_percentage():
+    # 查询所有图片的总数
+    total_images = db.session.query(func.count(Image.id)).scalar()
+
+    if total_images == 0:
+        return "No images available."
+
+    # 查询未标记图片的数量
+    unlabeled_images = db.session.query(func.count(Image.id)).filter(Image.is_labeled == False).scalar()
+
+    # 计算未标记图片的比例
+    percentage = (unlabeled_images / total_images) * 100
+
+    return percentage, total_images
