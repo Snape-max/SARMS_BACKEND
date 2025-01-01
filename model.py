@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-
 from sqlalchemy import func, and_
 from sqlalchemy.orm import aliased
 from werkzeug.security import  generate_password_hash, check_password_hash
