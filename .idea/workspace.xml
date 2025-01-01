@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="da1d062b-9332-4db3-880b-9d881688b8fd" name="更改" comment="feat(file): 实现文件查询和修改功能&#10;&#10;- 添加文件查询接口，支持按名称、日期和标签筛选&#10;- 添加文件修改接口，支持重命名和删除&#10;-优化文件上传逻辑，使用 MD5 哈希值作为文件名&#10;- 新增文件保存路径和路由配置">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsgi.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -222,7 +222,7 @@
       <workItem from="1735699784057" duration="252000" />
       <workItem from="1735736869462" duration="322000" />
       <workItem from="1735738420612" duration="862000" />
-      <workItem from="1735741717248" duration="231000" />
+      <workItem from="1735741717248" duration="2085000" />
     </task>
     <task id="LOCAL-00001" summary="feat(file): 实现文件查询和修改功能&#10;&#10;- 添加文件查询接口，支持按名称、日期和标签筛选&#10;- 添加文件修改接口，支持重命名和删除&#10;-优化文件上传逻辑，使用 MD5 哈希值作为文件名&#10;- 新增文件保存路径和路由配置">
       <option name="closed" value="true" />
